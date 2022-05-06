@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
 const port = process.env.PORT || 5000;
-const { MongoClient, ServerApiVersion, CURSOR_FLAGS } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express();
 
 //middleware
@@ -16,7 +16,7 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 async function run() {
     try {
         await client.connect();
-        const inventoryCollection = client.db('quantaUser').collection('inventory');
+        const inventoryCollection = client.db('quanta').collection('inventory');
 
         app.get('/inventory', async (req, res) => {
             const query = {};
@@ -24,6 +24,13 @@ async function run() {
             const inventories = await cursor.toArray();
             res.send(inventories);
         });
+        
+        app.get('/inventory/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const inventory = await inventoryCollection.findOne(query);
+            res.send(inventory);
+        })
     }  
     finally {
         
