@@ -24,16 +24,29 @@ async function run() {
             const inventories = await cursor.toArray();
             res.send(inventories);
         });
-        
+
         app.get('/inventory/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: ObjectId(id) };
             const inventory = await inventoryCollection.findOne(query);
             res.send(inventory);
-        })
-    }  
+        });
+
+        app.post('/inventory', async (req, res) => {
+            const newInventory = req.body;
+            const result = await inventoryCollection.insertOne(newInventory);
+            res.send({ result: 'success' });
+        });
+
+        app.delete('/inventory/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const result = await inventoryCollection.deleteOne(query);
+            res.send(result);
+        });
+    }
     finally {
-        
+
     }
 }
 run().catch(console.dir)
