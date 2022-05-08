@@ -32,10 +32,36 @@ async function run() {
             res.send(inventory);
         });
 
+        app.get('/myInventory', async (req, res) => {
+            const email = req.query.email;
+            const query = { email: email };
+            const cursor = inventoryCollection.find(query);
+            const myInventory = await cursor.toArray();
+            console.log(myInventory);
+            res.send(myInventory);
+          });
+
         app.post('/inventory', async (req, res) => {
             const newInventory = req.body;
             const result = await inventoryCollection.insertOne(newInventory);
             res.send({ result: 'success' });
+        });
+
+        app.put('/inventory/:id', async (req, res) => {
+            const id = req.params.id;
+            const updatedStock = req.body.newStock;
+            console.log(updatedStock)
+            const filter = { _id: ObjectId(id) };
+            const options = { upsert: true };
+            const updatedDoc = {
+                $set: {
+                    stock: updatedStock
+
+                }
+            };
+            const result = await inventoryCollection.updateOne(filter, updatedDoc, options);
+            res.send({ result });
+
         });
 
         app.delete('/inventory/:id', async (req, res) => {
