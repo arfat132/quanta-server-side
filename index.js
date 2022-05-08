@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
 require('dotenv').config();
 const port = process.env.PORT || 5000;
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
@@ -17,7 +18,15 @@ async function run() {
     try {
         await client.connect();
         const inventoryCollection = client.db('quanta').collection('inventory');
-
+        
+        app.post('/signIn', async (req, res) => {
+            const user = req.body;
+            const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+                expiresIn: '1day'
+            });
+            res.send({ accessToken });          
+        });
+        
         app.get('/inventory', async (req, res) => {
             const query = {};
             const cursor = inventoryCollection.find(query);
@@ -33,18 +42,19 @@ async function run() {
         });
 
         app.get('/myInventory', async (req, res) => {
+            const authHeader = req.headers.authorization;
+            console.log(authHeader)
             const email = req.query.email;
             const query = { email: email };
             const cursor = inventoryCollection.find(query);
             const myInventory = await cursor.toArray();
-            console.log(myInventory);
             res.send(myInventory);
-          });
+        });
 
         app.post('/inventory', async (req, res) => {
             const newInventory = req.body;
             const result = await inventoryCollection.insertOne(newInventory);
-            res.send({ result: 'success' });
+            res.send(result);
         });
 
         app.put('/inventory/:id', async (req, res) => {
